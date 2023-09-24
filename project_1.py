@@ -102,8 +102,6 @@ def cal_A(n, pr, pc, gr, gc):
                 A[i][i-n]=1
 
 
-        print(A[i])
-
     for i in range((pr*n)+pc, len(A)):
 
         if(i != (gr*n)+gc):
@@ -150,7 +148,6 @@ def cal_A(n, pr, pc, gr, gc):
                 A[i][i+n]=1
                 A[i][i-n]=1
 
-        print(A[i])
     return A
 
 
@@ -167,17 +164,12 @@ def main():
     g_column = int(input("Enter the column (0 to {}): ".format(n - 1)))
 
     A = 1/4 * cal_A(n, p_row, p_column, g_row, g_column)
-    print(A)
     b = -np.ones((9,1))
     b[(g_row*n)+g_column]=0
     c = np.ones((9,1))
 
-    print(c)
-    print(A)
-    print(b)
-
     res = sp.optimize.linprog(c, A_ub=A, b_ub=b)
-    print(res)
+    print(res.x)
     
 
 if __name__ == '__main__':
