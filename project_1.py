@@ -68,44 +68,6 @@ def cal_A(n, ngs, gr, gc):
     return A
 
 
-# def state_val_cal(n, x, gr, gc):
-#     board = np.zeros((n, n))
-#     state_values = []
-
-#     for i in range(len(board)):
-#         for j in range(len(board[i])):
-#             value = 1
-#             if((i,j) == (gr,gc)):
-#                 value = 0
-#             else:
-#                 if j+1 < n:
-#                     value = value + 0.25*(x[((i)*n)+(j+1)])
-#                 else:
-#                     value = value + 0.25*(x[(i*n)+j])
-
-#                 if j-1 >= 0:
-#                     value = value + 0.25*(x[((i)*n)+(j-1)])
-#                 else:
-#                     value = value + 0.25*(x[(i*n)+j])
-
-#                 if i+1 < n:
-#                     value = value + 0.25*(x[((i+1)*n)+(j)])
-#                 else:
-#                     value = value + 0.25*(x[(i*n)+j])
-
-#                 if i-1 >= 0:
-#                     value = value + 0.25*(x[((i-1)*n)+(j)])
-#                 else:
-#                     value = value + 0.25*(x[(i*n)+j])
-    
-#             state_values.append(value)
-
-#     total = 0
-#     for element in state_values:
-#         total += element
-    
-#     return state_values, total
-
 def generate_heat_map(n_1, n_2, ngs, state_values_cal_part1, state_values_mcs_part1, state_values_cal_part2, state_values_mcs_part2):
 
     fig, ax = plt.subplots(2,2)
@@ -133,7 +95,7 @@ def generate_heat_map(n_1, n_2, ngs, state_values_cal_part1, state_values_mcs_pa
                 color = cmap(norm(value_set[i][label_counter]))
                 rect = plt.Rectangle((x, y), 1, 1, linewidth=1, edgecolor='black', facecolor=color)
                 ax[0][i].add_patch(rect)
-                label = ax[0][i].text(x + 0.5, y + 0.5, "S_{s}:\n{V}".format(s=label_counter, V=round(value_set[i][label_counter],2)), ha='center', va='center', fontsize=12)
+                label = ax[0][i].text(x + 0.5, y + 0.5, "S_{s}:\n{V}".format(s=label_counter, V=round(value_set[i][label_counter],2)), ha='center', va='center', fontsize=6)
                 label_counter -= 1
 
         ax[0][i].set_xticks([])
@@ -155,13 +117,13 @@ def generate_heat_map(n_1, n_2, ngs, state_values_cal_part1, state_values_mcs_pa
                     color = cmap(norm(value_set[i+2][label_counter]))
                     rect = plt.Rectangle((x, y), 1, 1, linewidth=1, edgecolor='black', facecolor=color)
                     ax[1][i].add_patch(rect)
-                    label = ax[1][i].text(x + 0.5, y + 0.5, "S_{s}:\n{V}".format(s=label_counter, V=round(value_set[i+2][label_counter],2)), ha='center', va='center', fontsize=12)
+                    label = ax[1][i].text(x + 0.5, y + 0.5, "S_{s}:\n{V}".format(s=label_counter, V=round(value_set[i+2][label_counter],2)), ha='center', va='center', fontsize=6)
                     label_counter -= 1
                 else:
                     color = cmap(norm(value_set[i+2][label_counter]))
                     rect = plt.Rectangle((x, y), 1, 1, linewidth=1, edgecolor='black', facecolor='black')
                     ax[1][i].add_patch(rect)
-                    label = ax[1][i].text(x + 0.5, y + 0.5, "Obs", ha='center', va='center', fontsize=12)
+                    label = ax[1][i].text(x + 0.5, y + 0.5, "Obs", ha='center', va='center', fontsize=6)
                     label_counter -= 1
 
 
@@ -187,19 +149,21 @@ def main():
 
     res = sp.optimize.linprog(c, A_ub=A, b_ub=b)
 
-    # state_values_CAL, total = state_val_cal(n, res.x, g_row, g_column)
     value_CAL_1 = res.x
 
     print()
     print("-- Question 1 Calculated State Values --")
-    print(value_CAL_1)
+    print(np.round(value_CAL_1,2))
     print()
     print("-- Question 1 Calculated Summation of Expected Values --")
-    print(res.fun)
+    print(np.round(res.fun,2))
     print()
     value_MCS_1 =  monte_carlo_sim(n_1, no_go_spaces, g_row, g_column, 500)
     print("-- Question 1 Monte Carlo Simmulated State Values --")
-    print(value_MCS_1)
+    print(np.round(value_MCS_1,2))
+    print()
+    print("-- Question 1 Calculated Summation of Simmulated State Values --")
+    print(np.sum(np.round(value_MCS_1,2)))
 
     n_2 = 5
     g_row = 4
@@ -223,14 +187,17 @@ def main():
     value_CAL_2 = res.x
     print()
     print("-- Question 2 Calculated State Values --")
-    print(value_CAL_2)
+    print(np.round(value_CAL_2, 2))
     print()
     print("-- Question 2 Calculated Summation of Expected Values --")
-    print(res.fun)
+    print(np.round(res.fun, 2))
     print()
     value_MCS_2 =  monte_carlo_sim(n_2, no_go_spaces, g_row, g_column, 500)
     print("-- Question 2 Monte Carlo Simmulated State Values --")
-    print(value_MCS_2)
+    print(np.round(value_MCS_2,2))
+    print()
+    print("-- Question 2 Calculated Summation of Simmulated State Values --")
+    print(np.sum(np.round(value_MCS_2,2)))
 
 
     generate_heat_map(n_1, n_2, no_go_spaces, value_CAL_1, value_MCS_1, value_CAL_2, value_MCS_2)
