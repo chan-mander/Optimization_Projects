@@ -32,7 +32,7 @@ def monte_carlo_sim(n, ngs, goal_row, goal_col, repeat):
                         else:
                             state = maybe_state
 
-                        cost = cost + 1
+                        cost = cost + -1
 
                 costs.append(cost)
         
@@ -95,7 +95,7 @@ def generate_heat_map(n_1, n_2, ngs, state_values_cal_part1, state_values_mcs_pa
                 color = cmap(norm(value_set[i][label_counter]))
                 rect = plt.Rectangle((x, y), 1, 1, linewidth=1, edgecolor='black', facecolor=color)
                 ax[0][i].add_patch(rect)
-                label = ax[0][i].text(x + 0.5, y + 0.5, "S_{s}:\n{V}".format(s=label_counter, V=round(value_set[i][label_counter],2)), ha='center', va='center', fontsize=6)
+                label = ax[0][i].text(x + 0.5, y + 0.5, "z_{s}:\n{V}".format(s=label_counter, V=round(value_set[i][label_counter],2)), ha='center', va='center', fontsize=12)
                 label_counter -= 1
 
         ax[0][i].set_xticks([])
@@ -117,13 +117,13 @@ def generate_heat_map(n_1, n_2, ngs, state_values_cal_part1, state_values_mcs_pa
                     color = cmap(norm(value_set[i+2][label_counter]))
                     rect = plt.Rectangle((x, y), 1, 1, linewidth=1, edgecolor='black', facecolor=color)
                     ax[1][i].add_patch(rect)
-                    label = ax[1][i].text(x + 0.5, y + 0.5, "S_{s}:\n{V}".format(s=label_counter, V=round(value_set[i+2][label_counter],2)), ha='center', va='center', fontsize=6)
+                    label = ax[1][i].text(x + 0.5, y + 0.5, "z_{s}:\n{V}".format(s=label_counter, V=round(value_set[i+2][label_counter],2)), ha='center', va='center', fontsize=12)
                     label_counter -= 1
                 else:
                     color = cmap(norm(value_set[i+2][label_counter]))
                     rect = plt.Rectangle((x, y), 1, 1, linewidth=1, edgecolor='black', facecolor='black')
                     ax[1][i].add_patch(rect)
-                    label = ax[1][i].text(x + 0.5, y + 0.5, "Obs", ha='center', va='center', fontsize=6)
+                    label = ax[1][i].text(x + 0.5, y + 0.5, "Obs", ha='center', va='center', fontsize=12)
                     label_counter -= 1
 
 
@@ -137,21 +137,28 @@ def generate_heat_map(n_1, n_2, ngs, state_values_cal_part1, state_values_mcs_pa
     plt.show()
 
 def main():
+    bounds = (-np.inf, 0)
     n_1 = 8
     g_row = 7
     g_column = 7
     no_go_spaces = []
 
-    A = 1/4 * cal_A(n_1, no_go_spaces, g_row, g_column)
-    b = -np.ones((n_1*n_1,1))
-    b[((g_row*n_1)+g_column)]=0
-    c = np.ones((n_1*n_1,1))
+    c_1 = np.ones((n_1*n_1,1))
 
-    res = sp.optimize.linprog(c, A_ub=A, b_ub=b)
+    A_1_ub = 1/4 * cal_A(n_1, no_go_spaces, g_row, g_column)
+    A_1_ub = A_1_ub[:-1]
+
+    b_1_ub = np.ones((n_1*n_1 - 1,1))
+
+    A_1_eq = np.zeros((1,n_1*n_1))
+    A_1_eq[0][n_1*n_1 - 1] = 1
+
+    b_1_eq = np.zeros(1)
+
+    res = sp.optimize.linprog(c=c_1, A_ub=A_1_ub, b_ub=b_1_ub, A_eq=A_1_eq, b_eq=b_1_eq, bounds=bounds)
+
 
     value_CAL_1 = res.x
-
-    print()
     print("-- Question 1 Calculated State Values --")
     print(np.round(value_CAL_1,2))
     print()
@@ -171,18 +178,26 @@ def main():
 
     no_go_spaces = [3, 12, 17, 20, 21]
 
-    A = 1/4 * cal_A(n_2, no_go_spaces, g_row, g_column)
-    b = -np.ones((n_2*n_2,1))
-    c = np.ones((n_2*n_2,1))
-
-    b[((g_row*n_2)+g_column)]=0
+    c_2 = np.ones((n_2*n_2,1))
     for space in no_go_spaces:
-        b[space]=0
+        c_2[space]=0
 
-    for space in no_go_spaces:
-        c[space]=0
+    A_2_ub = 1/4 * cal_A(n_2, no_go_spaces, g_row, g_column)
+    A_2_ub = np.delete(A_2_ub, (n_2*g_row)+g_column, axis=0)
+    A_2_ub = np.delete(A_2_ub, no_go_spaces, axis=0)
 
-    res = sp.optimize.linprog(c, A_ub=A, b_ub=b)
+    b_2_ub = np.ones((n_2*n_2,1))
+    b_2_ub = np.delete(b_2_ub, (n_2*g_row)+g_column, axis=0)
+    b_2_ub = np.delete(b_2_ub, no_go_spaces, axis=0)
+
+    A_2_eq = np.zeros((6,n_2*n_2))
+    for i in range(5):
+        A_2_eq[i][no_go_spaces[i]] = 1
+    A_2_eq[5][n_2*n_2 - 1] = 1
+
+    b_2_eq = np.zeros((6,1))
+
+    res = sp.optimize.linprog(c=c_2, A_ub=A_2_ub, b_ub=b_2_ub, A_eq=A_2_eq, b_eq=b_2_eq, bounds=bounds)
 
     value_CAL_2 = res.x
     print()
@@ -201,8 +216,6 @@ def main():
 
 
     generate_heat_map(n_1, n_2, no_go_spaces, value_CAL_1, value_MCS_1, value_CAL_2, value_MCS_2)
-
-
 
 
 if __name__ == '__main__':
